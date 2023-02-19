@@ -8,9 +8,96 @@ This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute
 Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
 
 ```{r}
-Glink="https://github.com/Van-542-Deliverables/Deliverable-2/raw/main/"
+Glink="https://github.com/Van-542-Deliverables/Deliverable-1/raw/main/"
 Flink="CountryRankingFinal.csv"
-CountryRankingFinal=read.csv(paste0(Glink,Flink))
+CFR=read.csv(paste0(Glink,Flink))
+
+row.names(CFR)=NULL
+str(CFR)
+
+dataToCluster=CFR[,-c(1,3)]
+row.names(dataToCluster)=CFR$name
+```
+```{r}
+set.seed(999)
+library(cluster)
+distanceMatrix=daisy(x=dataToCluster, metric = "gower")
+
+projectedData=cmdscale(distanceMatrix, k=2)
+
+CFR$dim1 = projectedData[,1]
+CFR$dim2 = projectedData[,2]
+
+CFR[,c('dim1','dim2')][1:10,]
+```
+```{r}
+hc=hclust(distanceMatrix)
+plot(hc,hang= -1,cex=.2)
+```
+```{r}
+library(ggplot2)
+install.packages("vctrs")
+```
+```{r}
+library(factoextra)
+fviz_nbclust(dataToCluster, hcut, diss=distanceMatrix, method = "gap_stat", k.max = 15, verbose = F, hc_func = "agnes")
+```
+```{r}
+fviz_nbclust(dataToCluster, hcut, diss=distanceMatrix, method = "gap_stat", k.max = 15, verbose = F, hc_func = "diana")
+```
+```{r}
+NumberOfClusterDesired=10
+res.agnes=hcut(distanceMatrix, k = NumberOfClusterDesired, isdiss=TRUE, hc_func='agnes', hc_method="ward.D2")
+res.diana=hcut(distanceMatrix, k = NumberOfClusterDesired, isdiss=TRUE, hc_func='diana', hc_method="ward.D2")
+```
+```{r}
+CFR$agn=as.factor(res.agnes$cluster)
+CFR$dia=as.factor(res.diana$cluster)
+```
+```{r}
+fviz_silhouette(res.agnes)
+```
+```{r}
+fviz_silhouette(res.diana)
+```
+```{r}
+agnEval=data.frame(res.agnes$silinfo$widths)
+diaEval=data.frame(res.diana$silinfo$widths)
+
+agnPoor=rownames(agnEval[agnEval$sil_width<0,])
+diaPoor=rownames(diaEval[diaEval$sil_width<0,])
+
+install.packages("qpcR")
+install.packages("XQuartz")
+
+library("qpcR")
+bad_Clus=as.data.frame(qpcR:::cbind.na(sort(agnPoor),sort(diaPoor)))
+names(bad_Clus)=c("agn","dia")
+bad_Clus
+```
+```{r}
+base= ggplot(data=CFR, aes(x=dim1, y=dim2, label=name))
+agnPlot=base+labs(title="AGNES") + geom_point(size=2, aes(color=agn), show.legend=T)
+diaPlot=base+labs(title="DIANA") + geom_point(size=2, aes(color=dia), show.legend=T)
+library(ggpubr)
+ggarrange(agnPlot, diaPlot,ncol = 2,common.legent=T)
+```
+
+
+```{r}
+fviz_dend(res.agnes, k=NumberOfClusterDesired, cex = 0.15, horiz = T, main = "AGNES approach")
+```
+```{r}
+fviz_dend(res.diana, k=NumberOfClusterDesired, cex = 0.15, horiz = T, main = "DIANA approach")
+```
+```{r}
+table(CFR$region,CFR$agn)
+```
+```{r}
+table(CFR$region,CFR$dia)
+```
+```{r}
+saveRDS(CFR,file='CFRClusterAnalysis.RDS')
 ```
 
 Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
