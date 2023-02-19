@@ -10,7 +10,7 @@ Try executing this chunk by clicking the *Run* button within the chunk or by pla
 ```{r}
 Glink="https://github.com/Van-542-Deliverables/Deliverable-2/raw/main/"
 Flink="CountryRankingFinal.csv"
-CRF=read.csv(paste0(Glink,Flink))
+CountryRankingFinal=read.csv(paste0(Glink,Flink))
 ```
 
 Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
