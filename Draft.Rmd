@@ -1,5 +1,5 @@
 ---
-title: "index"
+title: "Draft"
 output: html_notebook
 ---
 
@@ -97,7 +97,7 @@ table(CFR$region,CFR$agn)
 table(CFR$region,CFR$dia)
 ```
 ```{r}
-saveRDS(CFR,file='CFRClusterAnalysis.RDS')
+saveRDS(CFR,file='DraftCFRClusterAnalysis.RDS')
 ```
 
 Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
